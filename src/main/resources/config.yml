@@ -1,0 +1,10 @@
+# DupeS Configuration
+
+# Chance for item duplication (percentage)
+dupe-chance: 100.0
+
+# Whether to send messages when items are duplicated
+enable-messages: true
+
+# Whether to require permission to use dupe
+require-permission: false

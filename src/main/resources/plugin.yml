@@ -1,0 +1,17 @@
+name: DupeS
+version: '${project.version}'
+main: com.rafalohaki.dupe.DupeS
+api-version: '1.21'
+author: YourName
+description: Item frame duplication plugin
+
+commands:
+  dupereload:
+    description: Reloads the DupeS configuration
+    usage: /dupereload
+    permission: dupes.reload
+
+permissions:
+  dupes.reload:
+    description: Allows reloading the DupeS configuration
+    default: op
