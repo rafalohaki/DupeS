@@ -2,7 +2,7 @@ name: DupeS
 version: '${project.version}'
 main: com.rafalohaki.dupe.DupeS
 api-version: '1.21'
-author: YourName
+author: rafalohaki
 description: Item frame duplication plugin
 
 commands:
