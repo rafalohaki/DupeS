@@ -15,3 +15,6 @@ permissions:
   dupes.reload:
     description: Allows reloading the DupeS configuration
     default: op
+  dupes.use:
+    description: Allows players to duplicate items
+    default: true
