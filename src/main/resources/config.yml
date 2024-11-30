@@ -15,4 +15,5 @@ enable-messages: true
 # Whether to require permission to use dupe
 require-permission: false
 
+# console logs
 console-logs: true
