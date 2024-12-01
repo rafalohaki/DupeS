@@ -1,6 +1,4 @@
-# DupeS Configuration
-
-# Base chance for item duplication
+# Base chance for item duplication (dupes.use)
 dupe-chance: 1.0
 
 # VIP chance for item duplication (dupes.vip)
@@ -10,10 +8,10 @@ dupe-chance-vip: 2.0
 cooldown-millis: 1000
 
 # Whether to send messages when items are duplicated
-enable-messages: true
+enable-messages: false
 
-# Whether to require permission to use dupe (dupes.use)
-require-permission: false
+# Whether to require permission to use dupe
+require-permission: true
 
-# console logs
-console-logs: true
+# Enable or disable specific logs
+log-successful-duplications: true

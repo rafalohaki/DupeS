@@ -24,7 +24,7 @@ public class DupeS extends JavaPlugin implements Listener {
     private double dupeChanceVip;
     private boolean enableMessages;
     private boolean requirePermission;
-    private boolean consoleLogs;
+    private boolean logSuccessfulDuplications;
     private long cooldownMillis;
     private final ConcurrentHashMap<UUID, Long> recentDupes = new ConcurrentHashMap<>();
     private final Random random = new Random();
@@ -49,28 +49,25 @@ public class DupeS extends JavaPlugin implements Listener {
         reloadConfig();
         FileConfiguration config = getConfig();
 
-        // Define defaults and save them
         config.addDefault("dupe-chance", 1.0);
         config.addDefault("dupe-chance-vip", 2.0);
         config.addDefault("enable-messages", true);
         config.addDefault("require-permission", false);
         config.addDefault("cooldown-millis", 1000L);
-        config.addDefault("console-logs", true);
+        config.addDefault("log-successful-duplications", true);
         config.options().copyDefaults(true);
         saveConfig();
 
-        // Load and validate values
-        dupeChance = Math.max(0.0, Math.min(config.getDouble("dupe-chance"), 100.0)); // Cap at 100%, min at 0%
-        dupeChanceVip = Math.max(0.0, Math.min(config.getDouble("dupe-chance-vip"), 100.0)); // Cap at 100%, min at 0%
+        dupeChance = Math.max(0.0, Math.min(config.getDouble("dupe-chance"), 100.0));
+        dupeChanceVip = Math.max(0.0, Math.min(config.getDouble("dupe-chance-vip"), 100.0));
         enableMessages = config.getBoolean("enable-messages");
         requirePermission = config.getBoolean("require-permission");
-        cooldownMillis = Math.max(config.getLong("cooldown-millis"), 0L); // Ensure non-negative
-        consoleLogs = config.getBoolean("console-logs", true); // Load console logs value
+        cooldownMillis = Math.max(config.getLong("cooldown-millis"), 0L);
+        logSuccessfulDuplications = config.getBoolean("log-successful-duplications", true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        // Ensure event entities are valid and of the correct types
         if (!(event.getEntity() instanceof ItemFrame frame) || !(event.getDamager() instanceof Player player)) {
             return;
         }
@@ -89,16 +86,15 @@ public class DupeS extends JavaPlugin implements Listener {
             return;
         }
 
-        // Determine chance based on permissions
         double playerChance = player.hasPermission("dupes.vip") ? dupeChanceVip : dupeChance;
         if (random.nextDouble() * 100 > playerChance) {
-            return;  // Failed chance check
+            return;
         }
 
         addPlayerToCooldown(playerUUID, cooldownMillis);
 
         Location dropLoc = frame.getLocation();
-        getServer().getScheduler().runTask(this, () -> { // Ensures world access is synchronous
+        getServer().getScheduler().runTask(this, () -> {
             dropLoc.getWorld().dropItemNaturally(dropLoc, frameItem.clone());
 
             if (enableMessages) {
@@ -108,9 +104,11 @@ public class DupeS extends JavaPlugin implements Listener {
                                 .color(NamedTextColor.YELLOW)));
             }
 
-            // Log to console only if consoleLogs is true
-            if (consoleLogs) {
-                getLogger().info("Player " + player.getName() + " successfully duplicated an item with chance: " + playerChance + "%");
+            if (logSuccessfulDuplications) {
+                String chanceType = player.hasPermission("dupes.vip") ? "VIP" : "Default";
+                getLogger().info("Player " + player.getName() + " successfully duplicated an item." +
+                        " Chance: " + playerChance + "% (" + chanceType + ")." +
+                        " Item: " + frameItem.getType());
             }
         });
     }
@@ -146,6 +144,6 @@ public class DupeS extends JavaPlugin implements Listener {
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
             long currentTime = System.currentTimeMillis();
             recentDupes.entrySet().removeIf(entry -> entry.getValue() <= currentTime);
-        }, 100L, 100L); // Run every 5 seconds
+        }, 100L, 100L);
     }
 }

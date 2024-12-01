@@ -12,9 +12,12 @@ commands:
     permission: dupes.reload
 
 permissions:
-  dupes.reload:
-    description: Allows reloading the DupeS configuration
-    default: op
   dupes.use:
-    description: Allows players to duplicate items
-    default: true
+    description: "Allows the use of the dupe feature."
+    default: false
+  dupes.vip:
+    description: "Grants VIP access to enhanced dupe features."
+    default: false
+  dupes.reload:
+    description: "Allows reloading of the DupeS plugin configuration."
+    default: op
