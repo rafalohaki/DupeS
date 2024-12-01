@@ -1,23 +1,25 @@
 name: DupeS
-version: '${project.version}'
+version: ${project.version}
 main: com.rafalohaki.dupe.DupeS
-api-version: '1.21'
-author: rafalohaki
-description: Item frame duplication plugin
+description: A simple plugin to duplicate items from item frames.
+author: Rafalohaki
+api-version: 1.18
 
 commands:
   dupereload:
-    description: Reloads the DupeS configuration
-    usage: /dupereload
+    description: Reload the DupeS plugin configuration.
+    usage: /<command>
     permission: dupes.reload
 
 permissions:
   dupes.use:
-    description: "Allows the use of the dupe feature."
+    description: "Allows the player to use the duplication feature."
     default: false
+
   dupes.vip:
-    description: "Grants VIP access to enhanced dupe features."
+    description: "Grants VIP duplication chances."
     default: false
+
   dupes.reload:
-    description: "Allows reloading of the DupeS plugin configuration."
+    description: "Allows reloading the DupeS plugin configuration."
     default: op

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -35,60 +36,53 @@ public class DupeS extends JavaPlugin implements Listener {
         loadConfig();
         getServer().getPluginManager().registerEvents(this, this);
         startCooldownCleaner();
-        getLogger().info("DupeS enabled with chances: " +
-                dupeChance + "% (default), " + dupeChanceVip + "% (VIP), and cooldown: " + cooldownMillis + "ms");
+        getLogger().info(String.format("DupeS enabled: dupeChance=%.1f%%, dupeChanceVip=%.1f%%, cooldown=%dms",
+                dupeChance, dupeChanceVip, cooldownMillis));
     }
 
     @Override
     public void onDisable() {
-        getServer().getScheduler().cancelTasks(this);
-        getLogger().info("DupeS disabled. All tasks cancelled.");
+        getServer().getScheduler().cancelTasks(this); // Cancel scheduled tasks
+        HandlerList.unregisterAll(this.getServer().getPluginManager().getPlugin("DupeS")); // Unregister all listeners
+        getLogger().info("DupeS disabled. All resources cleaned up.");
     }
 
     private void loadConfig() {
         reloadConfig();
         FileConfiguration config = getConfig();
 
-        config.addDefault("dupe-chance", 1.0);
-        config.addDefault("dupe-chance-vip", 2.0);
-        config.addDefault("enable-messages", true);
-        config.addDefault("require-permission", false);
-        config.addDefault("cooldown-millis", 1000L);
-        config.addDefault("log-successful-duplications", true);
-        config.options().copyDefaults(true);
-        saveConfig();
-
-        dupeChance = Math.max(0.0, Math.min(config.getDouble("dupe-chance"), 100.0));
-        dupeChanceVip = Math.max(0.0, Math.min(config.getDouble("dupe-chance-vip"), 100.0));
-        enableMessages = config.getBoolean("enable-messages");
-        requirePermission = config.getBoolean("require-permission");
-        cooldownMillis = Math.max(config.getLong("cooldown-millis"), 0L);
+        // Load and validate configuration values
+        dupeChance = Math.max(0.0, Math.min(config.getDouble("dupe-chance", 1.0), 100.0));
+        dupeChanceVip = Math.max(0.0, Math.min(config.getDouble("dupe-chance-vip", 2.0), 100.0));
+        enableMessages = config.getBoolean("enable-messages", true);
+        requirePermission = config.getBoolean("require-permission", false);
+        cooldownMillis = Math.max(config.getLong("cooldown-millis", 1000L), 0);
         logSuccessfulDuplications = config.getBoolean("log-successful-duplications", true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof ItemFrame frame) || !(event.getDamager() instanceof Player player)) {
-            return;
+            return; // Ignore non-player or non-item-frame interactions
         }
 
         if (requirePermission && !player.hasPermission("dupes.use")) {
-            return;
+            return; // Block unauthorized duplication attempts
         }
 
         UUID playerUUID = player.getUniqueId();
         if (isPlayerOnCooldown(playerUUID)) {
-            return;
+            return; // Prevent duplication spam using cooldown
         }
 
         ItemStack frameItem = frame.getItem();
         if (frameItem == null || frameItem.getType().isAir()) {
-            return;
+            return; // Skip empty item frames
         }
 
         double playerChance = player.hasPermission("dupes.vip") ? dupeChanceVip : dupeChance;
         if (random.nextDouble() * 100 > playerChance) {
-            return;
+            return; // Skip if duplication chance fails
         }
 
         addPlayerToCooldown(playerUUID, cooldownMillis);
@@ -98,52 +92,52 @@ public class DupeS extends JavaPlugin implements Listener {
             dropLoc.getWorld().dropItemNaturally(dropLoc, frameItem.clone());
 
             if (enableMessages) {
-                player.sendMessage(Component.text("[DupeS] ")
-                        .color(NamedTextColor.GREEN)
-                        .append(Component.text("Item duplicated!")
-                                .color(NamedTextColor.YELLOW)));
+                player.sendMessage(Component.text("[DupeS] Item duplicated!")
+                        .color(NamedTextColor.GREEN));
             }
 
             if (logSuccessfulDuplications) {
-                String chanceType = player.hasPermission("dupes.vip") ? "VIP" : "Default";
-                getLogger().info("Player " + player.getName() + " successfully duplicated an item." +
-                        " Chance: " + playerChance + "% (" + chanceType + ")." +
-                        " Item: " + frameItem.getType());
+                getLogger().info(String.format("Player %s duplicated %s at [%d, %d, %d] using %s chance.",
+                        player.getName(),
+                        frameItem.getType(),
+                        dropLoc.getBlockX(), dropLoc.getBlockY(), dropLoc.getBlockZ(),
+                        player.hasPermission("dupes.vip") ? "VIP" : "Default"));
             }
         });
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("dupereload")) {
-            if (!sender.hasPermission("dupes.reload")) {
-                sender.sendMessage(Component.text("[DupeS] No permission!")
-                        .color(NamedTextColor.RED));
-                return true;
-            }
+        if (!command.getName().equalsIgnoreCase("dupereload")) {
+            return false;
+        }
 
-            loadConfig();
-            sender.sendMessage(Component.text("[DupeS] Configuration reloaded! Dupe chance: " +
-                    dupeChance + "% (default), " + dupeChanceVip + "% (VIP)")
-                    .color(NamedTextColor.GREEN));
+        if (!sender.hasPermission("dupes.reload")) {
+            sender.sendMessage(Component.text("[DupeS] You don't have permission!")
+                    .color(NamedTextColor.RED));
             return true;
         }
-        return false;
+
+        loadConfig();
+        sender.sendMessage(Component.text(String.format("[DupeS] Configuration reloaded: dupeChance=%.1f%%, dupeChanceVip=%.1f%%",
+                dupeChance, dupeChanceVip))
+                .color(NamedTextColor.GREEN));
+        return true;
     }
 
     private boolean isPlayerOnCooldown(UUID playerUUID) {
-        long currentTime = System.currentTimeMillis();
+        long currentTime = System.nanoTime();
         return recentDupes.getOrDefault(playerUUID, 0L) > currentTime;
     }
 
     private void addPlayerToCooldown(UUID playerUUID, long cooldownMillis) {
-        recentDupes.put(playerUUID, System.currentTimeMillis() + cooldownMillis);
+        recentDupes.put(playerUUID, System.nanoTime() + cooldownMillis * 1_000_000L);
     }
 
     private void startCooldownCleaner() {
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            long currentTime = System.currentTimeMillis();
+            long currentTime = System.nanoTime();
             recentDupes.entrySet().removeIf(entry -> entry.getValue() <= currentTime);
-        }, 100L, 100L);
+        }, 100L, 100L); // Run cleanup every 5 seconds
     }
 }

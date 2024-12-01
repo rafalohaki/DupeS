@@ -8,7 +8,7 @@ dupe-chance-vip: 2.0
 cooldown-millis: 1000
 
 # Whether to send messages when items are duplicated
-enable-messages: false
+enable-messages: true
 
 # Whether to require permission to use dupe
 require-permission: true
