@@ -16,10 +16,6 @@ public class PermissionManager {
         this.luckPerms = luckPerms;
     }
 
-    public void hasDupePermissionLuckPerms(Player player, PermissionCallback callback) {
-        hasPermissionLuckPerms(player, "dupes.use", callback);
-    }
-
     public void hasPermissionLuckPerms(Player player, String permission, PermissionCallback callback) {
         if (luckPerms == null) {
             callback.onResult(player.hasPermission(permission));

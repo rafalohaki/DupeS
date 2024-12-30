@@ -35,6 +35,7 @@ public class DupeS extends JavaPlugin implements Listener {
         LuckPerms luckPerms = null;
         if (provider != null) {
             luckPerms = provider.getProvider();
+            log("Successfully hooked into LuckPerms.");
         } else {
             getLogger().severe("LuckPerms API not found. Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
@@ -60,6 +61,8 @@ public class DupeS extends JavaPlugin implements Listener {
         enableMessages = config.getBoolean("enable-messages", true);
         requirePermission = config.getBoolean("require-permission", true);
         logSuccessfulDuplications = config.getBoolean("log-successful-duplications", true);
+        log(String.format("Configuration loaded: dupe-chance=%.2f, enable-messages=%b, require-permission=%b, log-successful-duplications=%b",
+                dupeChance, enableMessages, requirePermission, logSuccessfulDuplications));
         validateConfigValues();
     }
 
@@ -76,10 +79,11 @@ public class DupeS extends JavaPlugin implements Listener {
             return; // Not an item frame or player interaction, skip
         }
         if (requirePermission) {
-            permissionManager.hasDupePermissionLuckPerms(player, hasPermission -> {
+            permissionManager.hasPermissionLuckPerms(player, "dupes.use", hasPermission -> {
                 if (!hasPermission) {
                     event.setCancelled(true);
-                    log(String.format("Player %s does not have the required permissions.", player.getName()));
+                    player.sendMessage(Component.text("[DupeS] You do not have permission to duplicate items.", NamedTextColor.RED));
+                    log(String.format("Player %s does not have the required permissions (dupes.use).", player.getName()));
                     return;
                 }
                 processDuplication(player, frame);
@@ -98,18 +102,28 @@ public class DupeS extends JavaPlugin implements Listener {
     }
 
     private void attemptDuplication(Player player, ItemStack frameItem, Location dropLoc) {
-        double playerChance = player.hasPermission("dupes.vip") ? dupeChance * 2 : dupeChance;
-        // No need to multiply random number by 100, dupeChance is already 0-100
-        if (ThreadLocalRandom.current().nextDouble() * 100 > playerChance) {
+        if (ThreadLocalRandom.current().nextDouble() * 100 > dupeChance) {
             return; // Duplication failed by chance
         }
         getServer().getScheduler().runTask(this, () -> {
-            dropLoc.getWorld().dropItemNaturally(dropLoc, frameItem.clone());
-            if (enableMessages) {
-                player.sendMessage(Component.text("[DupeS] Item duplicated!", NamedTextColor.GREEN));
-            }
-            if (logSuccessfulDuplications) {
-                logDuplication(player, frameItem.getType().toString(), dropLoc, player.hasPermission("dupes.vip"));
+            try {
+                if (dropLoc.getWorld() != null) {
+                    dropLoc.getWorld().dropItemNaturally(dropLoc, frameItem.clone());
+                    if (enableMessages) {
+                        player.sendMessage(Component.text("[DupeS] Item duplicated!", NamedTextColor.GREEN));
+                    }
+                    if (logSuccessfulDuplications) {
+                        logDuplication(player, frameItem.getType().toString(), dropLoc, false);
+                    }
+                } else {
+                    getLogger().warning("World is null, cannot drop duplicated item.");
+                }
+            } catch (NullPointerException e) {
+                getLogger().severe("NullPointerException during item duplication: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                getLogger().severe("IllegalArgumentException during item duplication: " + e.getMessage());
+            } catch (Exception e) {
+                getLogger().severe("An unexpected error occurred during item duplication: " + e.getMessage());
             }
         });
     }
@@ -118,8 +132,7 @@ public class DupeS extends JavaPlugin implements Listener {
         log(String.format("Player %s duplicated %s at [%d, %d, %d] using %s chance.",
                 player.getName(),
                 itemType,
-                location.getBlockX(), location.getBlockY(), location.getBlockZ(),
-                isVip ? "VIP" : "Default"));
+                location.getBlockX(), location.getBlockY(), location.getBlockZ(), "Default"));
     }
 
     protected void log(String message) {

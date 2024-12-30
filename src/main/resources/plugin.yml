@@ -12,10 +12,6 @@ commands:
     aliases: [duplication]
     permission: dupes.admin
     subcommands:
-      status:
-        description: Get the current duplication chances.
-        usage: /dupe status
-        permission: dupes.admin
       reload:
         description: Reload the DupeS plugin configuration.
         usage: /dupe reload
