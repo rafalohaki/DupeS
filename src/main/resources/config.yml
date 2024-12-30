@@ -1,12 +1,6 @@
 # Base chance for item duplication (dupes.use)
 dupe-chance: 1.0
 
-# VIP chance for item duplication (dupes.vip)
-dupe-chance-vip: 2.0
-
-# Static cooldown in milliseconds between duplications for all players
-cooldown-millis: 1000
-
 # Whether to send messages when items are duplicated
 enable-messages: true
 

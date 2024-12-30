@@ -12,12 +12,8 @@ commands:
     aliases: [duplication]
     permission: dupes.admin
     subcommands:
-      getchance:
-        description: Get the current duplication chances.
-        usage: /dupe getchance
-        permission: dupes.admin
       status:
-        description: Check the plugin status and your cooldown.
+        description: Get the current duplication chances.
         usage: /dupe status
         permission: dupes.admin
       reload:
@@ -29,9 +25,6 @@ permissions:
   dupes.use:
     description: Allows players to duplicate items.
     default: false # Changed to false by default
-  dupes.vip:
-    description: Grants higher chances for item duplication.
-    default: op
   dupes.admin:
     description: Allows access to admin commands for the plugin.
     default: op
