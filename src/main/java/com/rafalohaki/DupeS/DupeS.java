@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class DupeS extends JavaPlugin implements Listener {
 
-    private double dupeChance; // Now directly represents a percentage (0-100)
+    private double dupeChance; // directly represents a percentage (0-100)
     private boolean enableMessages;
     private boolean requirePermission;
     private boolean logSuccessfulDuplications;
