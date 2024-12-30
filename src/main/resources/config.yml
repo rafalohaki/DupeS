@@ -1,4 +1,6 @@
-# Base chance for item duplication (dupes.use)
+# Base chance for item duplication (dupes.use).
+# This value should be between 0 and 100, representing the percentage chance of success.
+# For example, 50 means a 50% chance of duplication.
 dupe-chance: 1.0
 
 # Whether to send messages when items are duplicated

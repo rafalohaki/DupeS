@@ -8,38 +8,38 @@ import java.util.Optional;
 
 public class PermissionManager {
 
-   private final DupeS plugin;
-   private final LuckPerms luckPerms;
+    private final DupeS plugin;
+    private final LuckPerms luckPerms;
 
-   public PermissionManager(DupeS plugin, LuckPerms luckPerms) {
-       this.plugin = plugin;
-       this.luckPerms = luckPerms;
+    public PermissionManager(DupeS plugin, LuckPerms luckPerms) {
+        this.plugin = plugin;
+        this.luckPerms = luckPerms;
     }
-    public void hasDupePermissionLuckPerms(Player player,  PermissionCallback callback) {
+
+    public void hasDupePermissionLuckPerms(Player player, PermissionCallback callback) {
         hasPermissionLuckPerms(player, "dupes.use", callback);
     }
 
-     public void hasPermissionLuckPerms(Player player, String permission, PermissionCallback callback) {
+    public void hasPermissionLuckPerms(Player player, String permission, PermissionCallback callback) {
         if (luckPerms == null) {
-           callback.onResult(player.hasPermission(permission));
+            callback.onResult(player.hasPermission(permission));
             return;
         }
 
         luckPerms.getUserManager().loadUser(player.getUniqueId()).thenAcceptAsync(user -> {
-              boolean hasPermission = Optional.ofNullable(user)
-                     .map(u -> ((net.luckperms.api.model.user.User)u).getCachedData().getPermissionData().checkPermission(permission).asBoolean())
-                       .orElseGet(() -> {
-                           plugin.log("LuckPerms user data failed to load. Using Bukkit fallback");
-                            return player.hasPermission(permission);
-                        }
-                );
-             plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    callback.onResult(hasPermission);
-             });
+            boolean hasPermission = Optional.ofNullable(user)
+                    .map(u -> ((net.luckperms.api.model.user.User) u).getCachedData().getPermissionData().checkPermission(permission).asBoolean())
+                    .orElseGet(() -> {
+                        plugin.log("LuckPerms user data failed to load. Using Bukkit fallback");
+                        return player.hasPermission(permission);
+                    });
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                callback.onResult(hasPermission);
             });
-     }
+        });
+    }
 
     public interface PermissionCallback {
-          void onResult(boolean hasPermission);
-     }
+        void onResult(boolean hasPermission);
+    }
 }

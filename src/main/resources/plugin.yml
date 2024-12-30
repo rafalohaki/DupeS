@@ -3,7 +3,7 @@ version: ${project.version}
 main: com.rafalohaki.dupe.DupeS
 description: A simple plugin to duplicate items from item frames.
 author: Rafalohaki
-api-version: 1.20
+api-version: 1.21
 
 commands:
   dupe:
