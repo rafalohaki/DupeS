@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,7 +29,7 @@ public class DupeS extends JavaPlugin implements Listener {
     private boolean logSuccessfulDuplications;
     private long cooldownMillis;
     private final ConcurrentHashMap<UUID, Long> recentDupes = new ConcurrentHashMap<>();
-
+    private final Random random = new Random();
 
     @Override
     public void onEnable() {
@@ -75,32 +76,32 @@ public class DupeS extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof ItemFrame frame) || !(event.getDamager() instanceof Player player)) {
+       if (!(event.getEntity() instanceof ItemFrame frame) || !(event.getDamager() instanceof Player player)) {
             return;
         }
 
-        // Enforce permission if required
-        if (requirePermission && !player.hasPermission("dupes.use")) {
+         // Enforce permission if required
+         if (requirePermission && !player.hasPermission("dupes.use")) {
             event.setCancelled(true); // Block interaction and duplication
             return;
         }
 
         UUID playerUUID = player.getUniqueId();
-        if (isPlayerOnCooldown(playerUUID)) {
-            return; // Prevent duplication during cooldown
-        }
-
+         if (isPlayerOnCooldown(playerUUID)) {
+           return; // Prevent duplication during cooldown
+         }
         ItemStack frameItem = frame.getItem();
-        if (frameItem == null || frameItem.getType().isAir()) {
-            return; // Skip empty item frames
-        }
+       if (frameItem == null || frameItem.getType().isAir()) {
+           return; // Skip empty item frames
+       }
+
 
         double playerChance = player.hasPermission("dupes.vip") ? dupeChanceVip : dupeChance;
-        if (ThreadLocalRandom.current().nextDouble() * 100 > playerChance) {
-            return; // Skip if duplication chance fails
+       if (ThreadLocalRandom.current().nextDouble() * 100 > playerChance) {
+          return; // Skip if duplication chance fails
         }
 
-        addPlayerToCooldown(playerUUID, cooldownMillis);
+       addPlayerToCooldown(playerUUID, cooldownMillis);
 
         Location dropLoc = frame.getLocation();
         getServer().getScheduler().runTask(this, () -> {
@@ -108,72 +109,71 @@ public class DupeS extends JavaPlugin implements Listener {
 
             if (enableMessages) {
                 player.sendMessage(Component.text("[DupeS] Item duplicated!", NamedTextColor.GREEN));
-            }
+           }
 
             if (logSuccessfulDuplications) {
-               getLogger().info(String.format("Player %s duplicated %s at [%d, %d, %d] using %s chance.",
+                getLogger().info(String.format("Player %s duplicated %s at [%d, %d, %d] using %s chance.",
                         player.getName(),
                         frameItem.getType(),
-                        dropLoc.getBlockX(), dropLoc.getBlockY(), dropLoc.getBlockZ(),
+                       dropLoc.getBlockX(), dropLoc.getBlockY(), dropLoc.getBlockZ(),
                         player.hasPermission("dupes.vip") ? "VIP" : "Default"));
            }
-       });
+        });
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-       if (!command.getName().equalsIgnoreCase("dupe")) {
-            return false;
-       }
-      if (!sender.hasPermission("dupes.admin")) {
+        if (!command.getName().equalsIgnoreCase("dupe")) {
+           return false;
+        }
+        if (!sender.hasPermission("dupes.admin")) {
           sender.sendMessage(Component.text("[DupeS] You don't have permission!", NamedTextColor.RED));
            return true;
-       }
-     if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-          sender.sendMessage(Component.text("[DupeS] Subcommands: getchance, status, reload", NamedTextColor.AQUA));
-          return true;
       }
+       if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+            sender.sendMessage(Component.text("[DupeS] Subcommands: getchance, status, reload", NamedTextColor.AQUA));
+            return true;
+       }
        if (args[0].equalsIgnoreCase("getchance")) {
-         sender.sendMessage(Component.text(String.format("[DupeS] Default chance: %.1f%%, VIP chance: %.1f%%",
+          sender.sendMessage(Component.text(String.format("[DupeS] Default chance: %.1f%%, VIP chance: %.1f%%",
                 dupeChance, dupeChanceVip), NamedTextColor.GREEN));
-         return true;
-      }
-
-     if (args[0].equalsIgnoreCase("status")) {
-           if (sender instanceof Player player) {
-              UUID playerUUID = player.getUniqueId();
-                long remainingTime = isPlayerOnCooldown(playerUUID) ?
-                      (recentDupes.get(playerUUID) - System.nanoTime()) / 1_000_000_000 : 0;
-            sender.sendMessage(Component.text(String.format("[DupeS] Cooldown: %d seconds", remainingTime),
-                  NamedTextColor.YELLOW));
-          } else {
-               sender.sendMessage(Component.text("[DupeS] Only players can check their status.", NamedTextColor.RED));
-           }
-           return true;
-      }
-    if (args[0].equalsIgnoreCase("reload")) {
-          loadConfig();
-          validateConfigValues();
-          sender.sendMessage(Component.text("[DupeS] Configuration reloaded!", NamedTextColor.GREEN));
+          return true;
+       }
+       if (args[0].equalsIgnoreCase("status")) {
+            if (sender instanceof Player player) {
+                UUID playerUUID = player.getUniqueId();
+               long remainingTime = isPlayerOnCooldown(playerUUID) ?
+                    (recentDupes.get(playerUUID) - System.nanoTime()) / 1_000_000_000 : 0;
+                sender.sendMessage(Component.text(String.format("[DupeS] Cooldown: %d seconds", remainingTime),
+                        NamedTextColor.YELLOW));
+             } else {
+                 sender.sendMessage(Component.text("[DupeS] Only players can check their status.", NamedTextColor.RED));
+            }
+            return true;
+        }
+      if (args[0].equalsIgnoreCase("reload")) {
+            loadConfig();
+            validateConfigValues();
+            sender.sendMessage(Component.text("[DupeS] Configuration reloaded!", NamedTextColor.GREEN));
            return true;
        }
-    sender.sendMessage(Component.text("[DupeS] Unknown subcommand. Use /dupe help.", NamedTextColor.RED));
+      sender.sendMessage(Component.text("[DupeS] Unknown subcommand. Use /dupe help.", NamedTextColor.RED));
         return true;
     }
 
     private boolean isPlayerOnCooldown(UUID playerUUID) {
        long currentTime = System.nanoTime();
-        return recentDupes.getOrDefault(playerUUID, 0L) > currentTime;
-    }
+      return recentDupes.getOrDefault(playerUUID, 0L) > currentTime;
+     }
 
-   private void addPlayerToCooldown(UUID playerUUID, long cooldownMillis) {
+    private void addPlayerToCooldown(UUID playerUUID, long cooldownMillis) {
       recentDupes.put(playerUUID, System.nanoTime() + cooldownMillis * 1_000_000L);
     }
 
-   private void startCooldownCleaner() {
-       getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+    private void startCooldownCleaner() {
+     getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
           long currentTime = System.nanoTime();
-           recentDupes.entrySet().removeIf(entry -> entry.getValue() <= currentTime);
+            recentDupes.entrySet().removeIf(entry -> entry.getValue() <= currentTime);
         }, 100L, 100L);
-    }
+   }
 }
