@@ -28,10 +28,10 @@ commands:
 permissions:
   dupes.use:
     description: Allows players to duplicate items.
-    default: true
+    default: false # Changed to false by default
   dupes.vip:
     description: Grants higher chances for item duplication.
-    default: op # Set to op for VIP players by default
+    default: op
   dupes.admin:
     description: Allows access to admin commands for the plugin.
     default: op
