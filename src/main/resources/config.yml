@@ -1,13 +1,29 @@
-# Base chance for item duplication (dupes.use).
-# This value should be between 0 and 100, representing the percentage chance of success.
-# For example, 50 means a 50% chance of duplication.
+# Configuration file for DupeS plugin
+
+# Config version - DO NOT MODIFY MANUALLY
+config-version: 1
+
+# Base chance for item duplication (0-100).
+# Represents the percentage chance of success (e.g., 50 = 50% chance).
 dupe-chance: 1.0
 
-# Whether to send messages when items are duplicated
+# Whether to send messages to the player on duplication success/failure.
 enable-messages: true
 
-# Whether to require permission to use dupe
+# Whether players need the 'dupes.use' permission to duplicate items.
 require-permission: true
 
-# Enable or disable specific logs
+# Enable or disable logging of successful duplications to the console.
 log-successful-duplications: true
+
+# List of Material names (e.g., DIAMOND_SWORD, NETHER_STAR) that cannot be duplicated.
+# Case-insensitive matching.
+blacklisted-items:
+  - "BEDROCK"
+  - "COMMAND_BLOCK"
+  - "STRUCTURE_BLOCK"
+  # Add other items as needed
+
+# If true, items with custom NBT data (like enchantments, custom names, lore) will not be duplicated.
+# Set to false if you want enchanted/named items to be duplicatable.
+prevent-nbt-duplication: false

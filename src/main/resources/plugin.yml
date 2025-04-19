@@ -1,6 +1,7 @@
 name: DupeS
-version: ${project.version}
-main: com.rafalohaki.dupe.DupeS
+version: ${project.version} # Maven handles this
+# Correct main class path to match FIXED package and class name
+main: com.rafalohaki.DupeS.DupeS
 description: A simple plugin to duplicate items from item frames.
 author: Rafalohaki
 api-version: 1.21
@@ -8,19 +9,14 @@ api-version: 1.21
 commands:
   dupe:
     description: Admin commands for DupeS plugin.
-    usage: /dupe <subcommand>
+    usage: /dupe <reload|help>
     aliases: [duplication]
     permission: dupes.admin
-    subcommands:
-      reload:
-        description: Reload the DupeS plugin configuration.
-        usage: /dupe reload
-        permission: dupes.admin
 
 permissions:
   dupes.use:
-    description: Allows players to duplicate items.
-    default: false # Changed to false by default
+    description: Allows players to duplicate items by interacting with item frames.
+    default: false
   dupes.admin:
-    description: Allows access to admin commands for the plugin.
+    description: Allows access to admin commands like /dupe reload.
     default: op
