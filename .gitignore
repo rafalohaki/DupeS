@@ -1,4 +1,5 @@
 target/*
 mappings/*
 mappings-cloud/*
+.vscode/*
 skidfuscator.log
