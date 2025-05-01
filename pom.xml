@@ -6,7 +6,7 @@
 
     <groupId>com.rafalohaki</groupId>
     <artifactId>DupeS</artifactId>
-    <version>1.4</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <name>DupeS</name>
